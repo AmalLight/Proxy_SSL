@@ -1,0 +1,40 @@
+
+# FIRST-KEY_WITH_CRT:
+  - openssl req -x509 -sha256 -days 365 -nodes -newkey rsa:2048        \
+                                               -keyout private-key.key \
+                                               -out    public-cert.crt ;
+  + IMPORTANT-is:
+    - CN = Commin Name
+  ## MEANINGS-FOR-THE-COMMANDS:
+    - nodes = require_password
+    - subj = subject => -subj '/CN=...'
+  ## DECRYPT-FOR-DETAILS:
+    - openssl x509 -in public-cert.crt -text -noout
+
+--------------------------------------------------------------------------
+
+# NGINX/APACHE2 SSL FILES:
+  - ssl_certificate      public-cert.crt
+  - ssl_certificate_key  private-key.key
+  - ssl_protocols        TLSv1 TLSv1.1 TLSv1.2 TLSv1.3
+  - ssl_ciphers          HIGH:!aNULL:!MD5;
+# TOMCAT/FLASK/NODEJS:
+  ## using the same files of the previous two
+
+--------------------------------------------------------------------------
+
+# YOUR OWN:
+  - PRIVATE-ROOT  =>     openssl genrsa -aes256 -out private-ca-key.key 2048
+
+    + without-password:  openssl genrsa -out private-ca-key.key     2048
+  -   public  CRT =>     openssl req    -out public-ca-cert.crt         -sha256 -new -key private-ca-key.key     -x509   -days 365 -config shortCA.conf -extensions v3_ca
+  - ( skipped CSR )
+  ---
+  # PRIVATE-LEAF:
+    - private key:       openssl genrsa -out private-server-key.key 2048
+    - private CSR:       openssl req    -out private-server-csr.csr     -sha256 -new -key private-server-key.key                   -config shortSV.conf 
+    - public  CRT:       openssl ca     -out public-server-cert.crt  -md sha256       -in private-server-csr.csr -notext -days 365 -config shortCA.conf -extensions server_cert
+      * requirements:
+        - touch index.txt
+        - echo 1000 > serial.txt
+

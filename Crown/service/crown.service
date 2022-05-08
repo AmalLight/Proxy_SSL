@@ -1,0 +1,14 @@
+[Unit]
+Description=Crown
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/Crown/
+ExecStart=/usr/bin/python3 ./app.py
+# Restart=always
+
+[Install]
+WantedBy=multi-user.target
